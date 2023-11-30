@@ -1,0 +1,16 @@
+---
+title: "Bayesian Stats"
+author: "Emily Yang"
+date: "`r Sys.Date()`"
+output: 
+  prettydoc::html_pretty:
+    theme: caymen
+    toc: yes
+---
+
+```{r}
+library(tidyverse)
+# library(coda)
+#(rjags) 
+
+```
