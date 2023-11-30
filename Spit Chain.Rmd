@@ -1,0 +1,22 @@
+---
+title: "Spit Chain"
+author: "Emily Yang"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r}
+library(statnet)
+library(curl)
+f <- curl("https://raw.githubusercontent.com/fuzzyatelin/fuzzyatelin.github.io/master/bioanth-stats/module-F23-Group1/AnzaEtAl_2021_ggr_weighted.csv")
+bonobo_ggr_edgelist <- read.csv(f, header = TRUE, sep = ",")
+head(bonobo_ggr_edgelist) # data about bonobos' GG rubbing interactions
+
+q <- curl("https://raw.githubusercontent.com/fuzzyatelin/fuzzyatelin.github.io/master/bioanth-stats/module-F23-Group1/AnzaEtAl_2021_grooming_weighted.csv")
+bonobo_groom_edgelist <- read.csv(q, header = TRUE, sep = ",")
+head(bonobo_groom_edgelist) # data about bonobos' grooming interactions
+
+j <- curl("https://raw.githubusercontent.com/fuzzyatelin/fuzzyatelin.github.io/master/bioanth-stats/module-F23-Group1/AnzaEtAl_2021_attributes.csv")
+bonobo_attribute <- read.csv(j, header = TRUE, sep = ",")
+bonobo_attribute
+```
