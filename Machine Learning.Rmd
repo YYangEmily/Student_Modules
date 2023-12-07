@@ -21,3 +21,191 @@ d <- read.csv(f, header = TRUE, sep = ",", stringsAsFactors = FALSE)
 head(d) 
 d <- na.omit(d)
 ```
+
+## Random Sampling
+
+```{r}
+
+library(caret)
+library(rsample) #load in the necessary packages
+
+# Using base R for random sampling
+set.seed(123)  # for reproducibility of the random sample
+index_1 <- sample(1:nrow(d), round(nrow(d) * 0.6)) #indicates we are taking from dataset d, by row and rounding and the 0.6 shows we are taking a 60-40 split
+train_1 <- d[index_1, ] #creates our training set which we use for making the model
+test_1  <- d[-index_1, ] #creates our test set which we will test our final model against
+
+# Using caret package for random sampling
+set.seed(123)  # for reproducibility
+index_2 <- createDataPartition(d$age, p = 0.6, list = FALSE) #let us sample by age
+train_2 <- d[index_2, ]
+test_2  <- d[-index_2, ]
+
+# Using rsample package for random sampling
+set.seed(123)  # for reproducibility
+split_1  <- initial_split(d, prop = 0.6)
+train_2  <- training(split_1)
+test_2  <- testing(split_1)
+
+```
+
+
+## Making Models
+
+```{r}
+
+library(ggplot2) #load in package to plot our predictions for our models
+library(dplyr) 
+
+model1 <- glm(num ~ age, family = "binomial", data = train_2)
+model2 <- glm(num ~ sex, family = "binomial", data = train_2)
+model3 <- glm(
+  num ~ age + sex,
+  family = "binomial", 
+  data = train_2
+  ) #uses multiple logistic regression to evaluate prediction by age AND sex
+model4 <- glm(data = train_2, num ~ age + sex + cp + trestbps + chol + restecg + thalach + exang + oldpeak + slope + ca + thal + fbs, family = "binomial")
+
+exp(coef(model1))
+exp(coef(model2))
+exp(coef(model3))
+exp(coef(model4))
+
+plot1 <- ggplot(data = model1, aes(x = age, y = num))
+plot1 <- plot1 + geom_point()
+plot1 <- plot1 + geom_smooth(method = "glm", formula = y ~ x)
+plot1 
+
+plot2 <- ggplot(data = model2, aes(x = sex, y = num))
+plot2 <- plot2 + geom_point()
+plot2 <- plot2 + geom_smooth(method = "glm", formula = y ~ x)
+plot2
+
+plot3 <- ggplot(data = model3, aes(x = age + sex, y = num))
+plot3 <- plot3 + geom_point()
+plot3 <- plot3 + geom_smooth(method = "glm", formula = y ~ x)
+plot3 
+
+plot4 <- ggplot(data = model4, aes(x = age + sex + cp + trestbps + chol + restecg + thalach + exang + oldpeak + slope + ca + thal + fbs, y = num))
+plot4 <- plot4 + geom_point()
+plot4 <- plot4 + geom_smooth(method = "glm", formula = y ~ x)
+plot4
+
+```
+
+## Testing Model
+
+```{r}
+p <- predict(model4, test_2, type = "response")
+summary(p)
+cl <- ifelse(p > 0.5, "1", "0") #We want to categorize the prediction result (into 0 and 1). 
+testRef <- test_2$num
+t <- table(cl, testRef)
+confusionMatrix(t, predicted=1)
+
+library(caTools)
+caTools::colAUC(p, test_2[["num"]], plotROC = TRUE)
+
+library(ModelMetrics)
+
+LL1<-logLoss(model1)
+LL2<-logLoss(model2)
+LL3<-logLoss(model3)
+LL4<-logLoss(model4)
+LL1
+LL2
+LL3
+LL4
+```
+
+## Data Partitioning
+
+```{r, eval=FALSE}
+
+d$num<-as.factor(d$num)
+relevel(d$num, ref="0")
+
+set.seed(123)
+#train.control <- trainControl(method = "LOOCV") #setting the model to cross validate by leaving one out
+#loomodel<-train(num~., data=d, method= "glm", family=binomial, trControl=train.control)
+#print(loomodel)
+
+set.seed(123)
+#train.control <- trainControl(method = "cv", number = 10) #setting the model to cross validate and k=10
+#kmodel<-train(num~., data=d, method= "glm", family=binomial, trControl=train.control)
+#print(kmodel)
+
+set.seed(123)
+train.control2 <- trainControl(method = "repeatedcv", number = 10, repeats = 3) #setting the model to repeatedly cross validate, k=10, and repeat three times
+#repkmodel<-train(num~., data=d, method="glm", family = binomial, trControl=train.control2)
+#print(repkmodel) 
+```
+## Challenge 1
+
+```{r}
+
+library(curl)
+x <- curl("https://raw.githubusercontent.com/cbao2397/DataStorage/main/wdbc10.csv")
+b <- read.csv(x, header = TRUE, sep = ",", stringsAsFactors = FALSE)
+head(b) #loads in dataset
+b <- na.omit(b)
+
+library(caret)
+library(rsample) #load in the necessary packages
+
+# Using base R for random sampling
+set.seed(123)  # for reproducibility of the random sample
+index_1 <- sample(1:nrow(b), round(nrow(b) * 0.6)) #indicates we are taking from dataset d, by row and rounding and the 0.6 shows we are taking a 60-40 split
+train_1 <- b[index_1, ] #creates our training set which we use for making the model
+test_1  <- b[-index_1, ] #creates our test set which we will test our final model against
+
+# Using caret package for random sampling
+set.seed(123)  # for reproducibility
+index_2 <- createDataPartition(b$texture1, times = 1, p = 0.6, list = FALSE) #let us sample by texture1
+train_2 <- b[index_2, ]
+test_2  <- b[-index_2, ]
+
+# Using rsample package for random sampling
+set.seed(123)  # for reproducibility
+split_1  <- initial_split(b, prop = 0.6)
+train_2  <- training(split_1)
+test_2  <- testing(split_1)
+
+library(ggplot2) #load in package to plot our predictions for our models
+library(dplyr) #for transforming and interpreting our results later
+model1 <- glm(Diagnosis ~ texture1, family = "binomial", data = train_2)
+model2 <- glm(Diagnosis ~ peri1eter1, family = "binomial", data = train_2)
+model3 <- glm(
+  Diagnosis ~ texture1 + peri1eter1,
+  family = "binomial", 
+  data = train_2
+  )
+
+exp(coef(model1))
+exp(coef(model2))
+exp(coef(model3))
+exp(coef(model4))
+
+plot1 <- ggplot(data = model1, aes(x = age, y = num))
+plot1 <- plot1 + geom_point()
+plot1 <- plot1 + geom_smooth(method = "glm", formula = y ~ x)
+plot1 
+
+plot2 <- ggplot(data = model2, aes(x = sex, y = num))
+plot2 <- plot2 + geom_point()
+plot2 <- plot2 + geom_smooth(method = "glm", formula = y ~ x)
+plot2
+
+plot3 <- ggplot(data = model3, aes(x = age + sex, y = num))
+plot3 <- plot3 + geom_point()
+plot3 <- plot3 + geom_smooth(method = "glm", formula = y ~ x)
+plot3 
+
+plot4 <- ggplot(data = model4, aes(x = age + sex + cp + trestbps + chol + restecg + thalach + exang + oldpeak + slope + ca + thal + fbs, y = num))
+plot4 <- plot4 + geom_point()
+plot4 <- plot4 + geom_smooth(method = "glm", formula = y ~ x)
+plot4
+
+model4 <- glm(Diagnosis ~ ., family = "binomial", data = train_2)
+
+
