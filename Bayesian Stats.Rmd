@@ -121,4 +121,84 @@ fit_samples <- data.frame(homerange =
                             c(fit_samples[, "lambda2.1"],
                                   fit_samples[, "lambda2.2"]))
 ```
+## Gamma JAGS inference
 
+```{r}
+colors <- c("Homerange" = "orange3", "Playback point transect" = "steelblue3")
+# let's put our two samples against each other
+fit_samples %>% ggplot() + # ggplot them
+  geom_density(aes(x = homerange, fill = "Homerange", alpha = 0.5)) +
+  geom_density(aes(x = ppt, fill = "Playback point transect", alpha = 0.5)) +
+  xlab("Lambda Samples") +
+  ggtitle("Posterior distributions of Homerange\nand Playback point transect lambdas") +
+  scale_fill_manual(values = colors) +
+  geom_vline(xintercept = 15, linetype = 3) + 
+  guides(alpha="none")
+
+ppt_credinterval <- quantile(fit_samples$ppt, probs = c(0.025, 0.975)); ppt_credinterval
+
+ppt_problessthan <- sum(fit_samples$ppt < 15)/length(fit_samples$ppt); ppt_problessthan
+
+hr_credinterval <- quantile(fit_samples$homerange, probs = c(0.025, 0.975)); hr_credinterval
+
+hr_probmorethan <- sum(fit_samples$homerange > 15)/length(fit_samples$homerange); hr_probmorethan
+
+diff_data <- fit_samples$homerange - fit_samples$ppt # subtract the two samples, then create a credible interval!
+diffr_credinterval <- quantile(diff_data, probs = c(0.025, 0.975)); diffr_credinterval
+
+diffr_prop <- sum(diff_data > 0)/length(diff_data); diffr_prop
+
+```
+
+## Normal Priors
+
+```{r}
+jags_data <- list(n_homerange = n_homerange, n_ppt = n_ppt, 
+                  homerange = titi_homerange, ppt = titi_ppt)
+jags_init <- list(lambda1 = homerange_init, 
+                  lambda2 = ppt_init)
+set.seed(812) # feel free to change my seed <3
+# we first need to make the model
+jags_model <- "model{
+  # likelihood
+  for(i in 1:n_homerange){
+  homerange[i] ~ dpois(lambda1)
+  }
+  for (i in 1:n_ppt){
+  ppt[i] ~ dpois(lambda2)
+  }
+  
+  # prior
+  lambda1 ~ dnorm(15, 1/9)
+  lambda2 ~ dnorm(15, 1/9)
+}"
+
+fit_norm <- jags.model(textConnection(jags_model),
+               data = jags_data, inits = jags_init, 
+               n.chains = 2, n.adapt = n_adapt) # what do the chains do?
+
+fit_samples_norm <- coda.samples(fit_norm, c("lambda1", "lambda2"), n.iter = n_iter) %>% 
+  window(start = n_burnin + n_adapt) # let's get our samples <3
+
+plot(window(fit_samples_norm), density = FALSE) # this is a trace plot (tells us where we're randomly walking)
+
+plot(window(fit_samples_norm), trace = FALSE) # this is a density plot (you know what this is!)
+
+summary(window(fit_samples_norm)) # these are our samples
+
+fit_samples_norm <- as.data.frame(as.array(fit_samples_norm)) # got to make a df
+
+acf(fit_samples_norm$lambda1.1)
+acf(fit_samples_norm$lambda2.1)
+acf(fit_samples_norm$lambda1.2)
+acf(fit_samples_norm$lambda2.2)
+
+fit_samples_norm <- data.frame(homerange = 
+                            c(fit_samples_norm[, "lambda1.1"], 
+                              fit_samples_norm[, "lambda1.2"]),
+                          ppt = 
+                            c(fit_samples_norm[, "lambda2.1"],
+                                  fit_samples_norm[, "lambda2.2"]))
+
+
+```

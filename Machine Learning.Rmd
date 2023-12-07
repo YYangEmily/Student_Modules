@@ -1,0 +1,23 @@
+---
+title: "Machine Learning"
+author: "Emily Yang"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Machine Learning
+
+
+```{r}
+
+library(curl)
+## Using libcurl 8.1.2 with LibreSSL/2.8.3
+f <- curl("https://raw.githubusercontent.com/cbao2397/DataStorage/main/moremoreprocessedbut01.cleveland.csv")
+d <- read.csv(f, header = TRUE, sep = ",", stringsAsFactors = FALSE)
+head(d) 
+d <- na.omit(d)
+```
