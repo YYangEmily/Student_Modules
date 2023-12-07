@@ -15,10 +15,25 @@ library(warbleR)
 library(bioacoustics)
 library(tools)
 library(randomForest)
-# Unfortunately, ohun is currently under policy violation, so for the time being we are using an archived version. We expect this library to be unarchived after investigation.
-url <- "https://cran.r-project.org/src/contrib/Archive/ohun/ohun_1.0.0.tar.gz"
-install.packages(url, type="source", repos=NULL)
 library(ohun)
 library(viridis)
 
+```
+
+## Data
+
+```{r}
+
+df1 = query_xc(qword ='Strepera versicolor type:call cnt:"Australia"', download = FALSE)
+
+# Filter by type   
+df1 = df1[df1$Vocalization_type=="call",] #filtering by only calls
+df1 = df1[df1$Quality=="A",] #a type quality
+df1 = df1[1:9,]#takes the first 9 mp3 files 
+
+# Download data to working directory
+query_xc(X = df1, download = TRUE, path = getwd())
+
+STREPV <- read_audio(file.path(getwd(), "Strepera-versicolor-571957.mp3"))
+STREPV
 ```

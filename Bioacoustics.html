@@ -376,15 +376,36 @@ display: none;
 library(randomForest)</code></pre>
 <pre><code>## randomForest 4.7-1.1</code></pre>
 <pre><code>## Type rfNews() to see new features/changes/bug fixes.</code></pre>
-<pre class="r"><code># Unfortunately, ohun is currently under policy violation, so for the time being we are using an archived version. We expect this library to be unarchived after investigation.
-url &lt;- &quot;https://cran.r-project.org/src/contrib/Archive/ohun/ohun_1.0.0.tar.gz&quot;
-install.packages(url, type=&quot;source&quot;, repos=NULL)
-library(ohun)</code></pre>
+<pre class="r"><code>library(ohun)</code></pre>
 <pre><code>## 
 ## Please cite &#39;ohun&#39; as:</code></pre>
 <pre><code>##  Araya-Salas, M., Smith-Vidaurre, G., Chaverri, G., Brenes, J. C., Chirino, F., Elizondo-Calvo, J., &amp; Rico-Guevara, A. 2023. ohun: an R package for diagnosing and optimizing automatic sound event detection. Methods in Ecology and Evolution. https://doi.org/10.1111/2041-210X.14170</code></pre>
 <pre class="r"><code>library(viridis)</code></pre>
 <pre><code>## Loading required package: viridisLite</code></pre>
+</div>
+<div id="data" class="section level2">
+<h2>Data</h2>
+<pre class="r"><code>df1 = query_xc(qword =&#39;Strepera versicolor type:call cnt:&quot;Australia&quot;&#39;, download = FALSE)</code></pre>
+<pre><code>## 51 recording(s) found!</code></pre>
+<pre class="r"><code># Filter by type   
+df1 = df1[df1$Vocalization_type==&quot;call&quot;,] #filtering by only calls
+df1 = df1[df1$Quality==&quot;A&quot;,] #a type quality
+df1 = df1[1:9,]#takes the first 9 mp3 files 
+
+# Download data to working directory
+query_xc(X = df1, download = TRUE, path = getwd())</code></pre>
+<pre><code>## Downloading files...</code></pre>
+<pre><code>## double-checking downloaded files</code></pre>
+<pre class="r"><code>STREPV &lt;- read_audio(file.path(getwd(), &quot;Strepera-versicolor-571957.mp3&quot;))
+STREPV</code></pre>
+<pre><code>## 
+## Wave Object
+##  Number of Samples:      2938752
+##  Duration (seconds):     61.22
+##  Samplingrate (Hertz):   48000
+##  Channels (Mono/Stereo): Mono
+##  PCM (integer format):   TRUE
+##  Bit (8/16/24/32/64):    16</code></pre>
 </div>
 
 
