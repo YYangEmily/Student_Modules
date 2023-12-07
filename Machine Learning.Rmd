@@ -120,7 +120,7 @@ LL4
 
 ## Data Partitioning
 
-```{r, eval=FALSE}
+```{r, eval=FALSE, warning=FALSE}
 
 d$num<-as.factor(d$num)
 relevel(d$num, ref="0")
